@@ -19,6 +19,7 @@ class PahocConan(ConanFile):
         tools.replace_in_file("sources/CMakeLists.txt", "PROJECT(\"paho\" C)", '''PROJECT("paho" C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()''')
+        tools.replace_in_file("sources/CMakeLists.txt", "ADD_SUBDIRECTORY(test)", "")
 
     def requirements(self):
         if self.options.SSL:
@@ -38,7 +39,7 @@ conan_basic_setup()''')
         self.copy("*.h", dst="include", src="sources/src")
         self.copy("*paho*.dll", dst="bin", keep_path=False)
         self.copy("*paho*.dylib", dst="lib", keep_path=False)
-        self.copy("*paho*.so", dst="lib", keep_path=False)
+        self.copy("*paho*.so*", dst="lib", keep_path=False)
         self.copy("*paho*.a", dst="lib", keep_path=False)
         self.copy("*paho*.lib", dst="lib", keep_path=False)
 
