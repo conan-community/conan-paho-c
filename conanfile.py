@@ -46,8 +46,9 @@ conan_basic_setup()''')
     def package_info(self):
         self.cpp_info.libs = []
 
-        if self.settings.os == "Windows" and not self.options.shared:
-            self.cpp_info.libs.append("ws2_32")
+        if self.settings.os == "Windows":
+            if not self.options.shared:
+                self.cpp_info.libs.append("ws2_32")
         else:
             if self.settings.os == "Linux":
                 self.cpp_info.libs.append("c")
