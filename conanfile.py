@@ -46,23 +46,6 @@ conan_basic_setup()''')
     def package_info(self):
         self.cpp_info.libs = []
 
-        if self.settings.os == "Windows":
-            if not self.options.shared:
-                self.cpp_info.libs.append("ws2_32")
-                if self.settings.compiler == "gcc":
-                    self.cpp_info.libs.append("wsock32")
-        else:
-            if self.settings.os == "Linux":
-                self.cpp_info.libs.append("c")
-                self.cpp_info.libs.append("dl")
-                self.cpp_info.libs.append("pthread")
-            elif self.settings.os == "FreeBSD":
-                self.cpp_info.libs.append("compat")
-                self.cpp_info.libs.append("pthread")
-            else:
-                self.cpp_info.libs.append("c")
-                self.cpp_info.libs.append("pthread")
-
         if self.options.shared and self:
             if self.options.asynchronous:
                 if self.options.SSL:
@@ -85,6 +68,23 @@ conan_basic_setup()''')
                     self.cpp_info.libs.append("paho-mqtt3cs-static")
                 else:
                     self.cpp_info.libs.append("paho-mqtt3c-static")
+
+        if self.settings.os == "Windows":
+            if not self.options.shared:
+                self.cpp_info.libs.append("ws2_32")
+                if self.settings.compiler == "gcc":
+                    self.cpp_info.libs.append("wsock32") # (MinGW) Not working
+        else:
+            if self.settings.os == "Linux":
+                self.cpp_info.libs.append("c")
+                self.cpp_info.libs.append("dl")
+                self.cpp_info.libs.append("pthread")
+            elif self.settings.os == "FreeBSD":
+                self.cpp_info.libs.append("compat")
+                self.cpp_info.libs.append("pthread")
+            else:
+                self.cpp_info.libs.append("c")
+                self.cpp_info.libs.append("pthread")
 
     def configure(self):
         del self.settings.compiler.libcxx
