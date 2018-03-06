@@ -49,6 +49,8 @@ conan_basic_setup()''')
         if self.settings.os == "Windows":
             if not self.options.shared:
                 self.cpp_info.libs.append("ws2_32")
+                if self.settings.compiler == "gcc":
+                    self.cpp_info.libs.append("wsock32")
         else:
             if self.settings.os == "Linux":
                 self.cpp_info.libs.append("c")
