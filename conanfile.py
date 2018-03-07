@@ -7,7 +7,9 @@ class PahocConan(ConanFile):
     version = "1.2.0"
     license = "Eclipse Public License - v 1.0"
     url = "https://github.com/eclipse/paho.mqtt.c"
-    description = "<Description of Pahoc here>"
+    description = """The Eclipse Paho project provides open-source client implementations of MQTT
+and MQTT-SN messaging protocols aimed at new, existing, and emerging applications for the Internet
+of Things (IoT)"""
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "SSL": [True, False], "asynchronous": [True, False]}
     default_options = "shared=False", "SSL=False", "asynchronous=False"
