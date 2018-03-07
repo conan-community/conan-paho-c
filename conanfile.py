@@ -6,7 +6,8 @@ class PahocConan(ConanFile):
     name = "paho-c"
     version = "1.2.0"
     license = "Eclipse Public License - v 1.0"
-    url = "https://github.com/eclipse/paho.mqtt.c"
+    url = "https://github.com/conan-community/conan-paho-c"
+    homepage = "https://github.com/eclipse/paho.mqtt.c"
     description = """The Eclipse Paho project provides open-source client implementations of MQTT
 and MQTT-SN messaging protocols aimed at new, existing, and emerging applications for the Internet
 of Things (IoT)"""
@@ -16,7 +17,7 @@ of Things (IoT)"""
     generators = "cmake"
 
     def source(self):
-        tools.get("%s/archive/v%s.zip" % (self.url, self.version))
+        tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
         os.rename("paho.mqtt.c-%s" % self.version, "sources")
         tools.replace_in_file("sources/CMakeLists.txt", "PROJECT(\"paho\" C)", '''PROJECT("paho" C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -78,7 +79,7 @@ conan_basic_setup()''')
             if not self.options.shared:
                 self.cpp_info.libs.append("ws2_32")
                 if self.settings.compiler == "gcc":
-                    self.cpp_info.libs.append("wsock32") # (MinGW) Not working
+                    self.cpp_info.libs.append("wsock32") # (MinGW) needed?
         else:
             if self.settings.os == "Linux":
                 self.cpp_info.libs.append("c")
