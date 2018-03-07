@@ -26,7 +26,7 @@ conan_basic_setup()''')
 
     def requirements(self):
         if self.options.SSL:
-            pass  # TODO: Add OpenSSL dependency
+            self.requires("OpenSSL/1.0.2n@conan/stable")
 
     def build(self):
         cmake = CMake(self)
