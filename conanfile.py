@@ -20,6 +20,9 @@ class PahocConan(ConanFile):
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()''')
         tools.replace_in_file("sources/CMakeLists.txt", "ADD_SUBDIRECTORY(test)", "")
+        tools.replace_in_file("sources/CMakeLists.txt",
+                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)",
+                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)")
 
     def requirements(self):
         if self.options.SSL:
