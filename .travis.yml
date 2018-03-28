@@ -42,7 +42,7 @@ matrix:
         env: CONAN_APPLE_CLANG_VERSIONS=9.0
 
       - <<: *linux
-        env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7-armv7hf
+        env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7-armv7hf CONAN_ARCHS=armv7hf
 
 install:
   - chmod +x .travis/install.sh
