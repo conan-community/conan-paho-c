@@ -5,16 +5,19 @@ import os
 class PahocConan(ConanFile):
     name = "paho-c"
     version = "1.2.0"
-    license = "Eclipse Public License - v 1.0"
-    url = "https://github.com/conan-community/conan-paho-c"
+    license = "EPL-1.0"
     homepage = "https://github.com/eclipse/paho.mqtt.c"
     description = """The Eclipse Paho project provides open-source client implementations of MQTT
 and MQTT-SN messaging protocols aimed at new, existing, and emerging applications for the Internet
 of Things (IoT)"""
+    url = "https://github.com/conan-community/conan-paho-c"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "SSL": [True, False], "asynchronous": [True, False]}
     default_options = "shared=False", "SSL=False", "asynchronous=False"
     generators = "cmake"
+
+    def configure(self):
+        del self.settings.compiler.libcxx
 
     def source(self):
         tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
@@ -91,6 +94,3 @@ conan_basic_setup()''')
             else:
                 self.cpp_info.libs.append("c")
                 self.cpp_info.libs.append("pthread")
-
-    def configure(self):
-        del self.settings.compiler.libcxx
