@@ -1,5 +1,5 @@
-from conans import ConanFile, CMake, tools
 import os
+from conans import ConanFile, CMake, tools
 
 
 class PahocConan(ConanFile):
@@ -15,18 +15,26 @@ of Things (IoT)"""
     options = {"shared": [True, False], "SSL": [True, False], "asynchronous": [True, False]}
     default_options = "shared=False", "SSL=False", "asynchronous=False"
     generators = "cmake"
+    exports = "LICENSE"
+
+    @property
+    def source_subfolder(self):
+        return "sources"
 
     def configure(self):
         del self.settings.compiler.libcxx
 
     def source(self):
         tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
-        os.rename("paho.mqtt.c-%s" % self.version, "sources")
-        tools.replace_in_file("sources/CMakeLists.txt", "PROJECT(\"paho\" C)", '''PROJECT("paho" C)
+        os.rename("paho.mqtt.c-%s" % self.version, self.source_subfolder)
+        cmakelists_path = "%s/CMakeLists.txt" % self.source_subfolder
+        tools.replace_in_file(cmakelists_path,
+                              "PROJECT(\"paho\" C)",
+                              """PROJECT("paho" C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()''')
-        tools.replace_in_file("sources/CMakeLists.txt", "ADD_SUBDIRECTORY(test)", "")
-        tools.replace_in_file("sources/CMakeLists.txt",
+conan_basic_setup()""")
+        tools.replace_in_file(cmakelists_path, "ADD_SUBDIRECTORY(test)", "")
+        tools.replace_in_file(cmakelists_path,
                               "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)",
                               "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)")
 
@@ -41,11 +49,12 @@ conan_basic_setup()''')
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
-        cmake.configure(source_folder="sources")
+        cmake.configure(source_folder=self.source_subfolder)
         cmake.build()
 
     def package(self):
-        self.copy("*.h", dst="include", src="sources/src")
+        self.copy("LICENSE", dst="licenses", src=self.source_subfolder)
+        self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
         self.copy("*paho*.dll", dst="bin", keep_path=False)
         self.copy("*paho*.dylib", dst="lib", keep_path=False)
         self.copy("*paho*.so*", dst="lib", keep_path=False)
