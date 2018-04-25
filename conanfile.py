@@ -61,7 +61,7 @@ conan_basic_setup()""")
         pattern += "a" if self.options.asynchronous else "c"
         pattern += "s" if self.options.SSL else ""
         pattern += "-static" if not self.options.shared else ""
-        for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".so*"]:
+        for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".*.dylib", ".so*"]:
             self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
                       keep_path=False)
 
