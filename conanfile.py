@@ -53,7 +53,9 @@ conan_basic_setup()""")
         cmake.build()
 
     def package(self):
-        self.copy("LICENSE", dst="licenses", src=self.source_subfolder)
+        self.copy("edl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
+        self.copy("epl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
+        self.copy("notice.html", src=self.source_subfolder, dst="licenses", keep_path=False)
         self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
         pattern = "*paho-mqtt3"
         pattern += "a" if self.options.asynchronous else "c"
