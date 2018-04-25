@@ -55,38 +55,16 @@ conan_basic_setup()""")
     def package(self):
         self.copy("LICENSE", dst="licenses", src=self.source_subfolder)
         self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
-        self.copy("*paho*.dll", dst="bin", keep_path=False)
-        self.copy("*paho*.dylib", dst="lib", keep_path=False)
-        self.copy("*paho*.so*", dst="lib", keep_path=False)
-        self.copy("*paho*.a", dst="lib", keep_path=False)
-        self.copy("*paho*.lib", dst="lib", keep_path=False)
+        pattern = "*paho-mqtt3"
+        pattern += "a" if self.options.asynchronous else "c"
+        pattern += "s" if self.options.SSL else ""
+        pattern += "-static" if not self.options.shared else ""
+        for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".so*"]:
+            self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
+                      keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = []
-
-        if self.options.shared and self:
-            if self.options.asynchronous:
-                if self.options.SSL:
-                    self.cpp_info.libs.append("paho-mqtt3as")
-                else:
-                    self.cpp_info.libs.append("paho-mqtt3a")
-            else:
-                if self.options.SSL:
-                    self.cpp_info.libs.append("paho-mqtt3cs")
-                else:
-                    self.cpp_info.libs.append("paho-mqtt3c")
-        else:
-            if self.options.asynchronous:
-                if self.options.SSL:
-                    self.cpp_info.libs.append("paho-mqtt3as-static")
-                else:
-                    self.cpp_info.libs.append("paho-mqtt3a-static")
-            else:
-                if self.options.SSL:
-                    self.cpp_info.libs.append("paho-mqtt3cs-static")
-                else:
-                    self.cpp_info.libs.append("paho-mqtt3c-static")
-
+        self.cpp_info.libs = tools.collect_libs(self)
         if self.settings.os == "Windows":
             if not self.options.shared:
                 self.cpp_info.libs.append("ws2_32")

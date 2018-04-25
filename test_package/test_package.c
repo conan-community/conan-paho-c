@@ -1,3 +1,4 @@
+// This example does not work for library option 'paho-c:asynchronous=True'
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
