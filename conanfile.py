@@ -12,14 +12,21 @@ and MQTT-SN messaging protocols aimed at new, existing, and emerging application
 of Things (IoT)"""
     url = "https://github.com/conan-community/conan-paho-c"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "SSL": [True, False], "asynchronous": [True, False]}
-    default_options = "shared=False", "SSL=False", "asynchronous=False"
+    options = {"shared": [True, False],
+               "fPIC": [True, False],
+               "SSL": [True, False],
+               "async": [True, False]}
+    default_options = "shared=False", "fPIC=True", "SSL=False", "async=True"
     generators = "cmake"
     exports = "LICENSE"
 
     @property
     def source_subfolder(self):
         return "sources"
+
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
 
     def configure(self):
         del self.settings.compiler.libcxx
@@ -58,8 +65,8 @@ conan_basic_setup()""")
         self.copy("notice.html", src=self.source_subfolder, dst="licenses", keep_path=False)
         self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
         pattern = "*paho-mqtt3"
-        pattern += "a" if self.options.asynchronous else "c"
         pattern += "s" if self.options.SSL else ""
+        pattern += "a" if self.options.async else "c"
         pattern += "-static" if not self.options.shared else ""
         for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".*.dylib", ".so*"]:
             self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
