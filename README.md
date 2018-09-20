@@ -2,7 +2,7 @@
 
 ![conan-paho-c image](/images/conan-paho-c.png)
 
-[![Download](https://api.bintray.com/packages/conan-community/conan/paho-c%3Aconan/images/download.svg)](https://bintray.com/conan-community/conan/paho-c%3Aconan/_latestVersion)
+[![Download](https://api.bintray.com/packages/conan-community/conan/paho-c%3Aconan/images/download.svg?version=1.2.0%3Astable)](https://bintray.com/conan-community/conan/paho-c%3Aconan/1.2.0%3Astable/link)
 [![Build Status](https://travis-ci.org/conan-community/conan-paho-c.svg?branch=stable%2F1.2.0)](https://travis-ci.org/conan-community/conan-paho-c)
 [![Build status](https://ci.appveyor.com/api/projects/status/b15m00302vlt843c/branch/stable/1.2.0?svg=true)](https://ci.appveyor.com/project/danimtb/conan-paho-c/branch/stable/1.2.0)
 
