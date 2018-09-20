@@ -4,7 +4,7 @@ from conans import ConanFile, CMake, tools
 
 class PahocConan(ConanFile):
     name = "paho-c"
-    version = "1.2.0"
+    version = "1.3.0"
     license = "EPL-1.0"
     homepage = "https://github.com/eclipse/paho.mqtt.c"
     description = """The Eclipse Paho project provides open-source client implementations of MQTT
@@ -36,8 +36,8 @@ of Things (IoT)"""
         os.rename("paho.mqtt.c-%s" % self.version, self.source_subfolder)
         cmakelists_path = "%s/CMakeLists.txt" % self.source_subfolder
         tools.replace_in_file(cmakelists_path,
-                              "PROJECT(\"paho\" C)",
-                              """PROJECT("paho" C)
+                              "PROJECT(\"Eclipse Paho C\" C)",
+                              """PROJECT(\"Eclipse Paho C\" C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
         tools.replace_in_file(cmakelists_path, "ADD_SUBDIRECTORY(test)", "")
@@ -47,7 +47,7 @@ conan_basic_setup()""")
 
     def requirements(self):
         if self.options.SSL:
-            self.requires("OpenSSL/1.0.2n@conan/stable")
+            self.requires("OpenSSL/1.1.0i@conan/stable")
 
     def build(self):
         cmake = CMake(self)
