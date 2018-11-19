@@ -10,18 +10,23 @@ class PahocConan(ConanFile):
     description = """The Eclipse Paho project provides open-source client implementations of MQTT
 and MQTT-SN messaging protocols aimed at new, existing, and emerging applications for the Internet
 of Things (IoT)"""
+    topics = ("MQTT", "IoT", "eclipse", "SSL", "paho", "C")
     url = "https://github.com/conan-community/conan-paho-c"
+    author = "Conan Community"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "SSL": [True, False],
-               "async": [True, False]}
-    default_options = "shared=False", "fPIC=True", "SSL=False", "async=True"
+               "asynchronous": [True, False]}
+    default_options = {"shared": False,
+                       "fPIC": True,
+                       "SSL": False,
+                       "asynchronous": True}
     generators = "cmake"
     exports = "LICENSE"
 
     @property
-    def source_subfolder(self):
+    def _source_subfolder(self):
         return "sources"
 
     def config_options(self):
@@ -33,8 +38,8 @@ of Things (IoT)"""
 
     def source(self):
         tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
-        os.rename("paho.mqtt.c-%s" % self.version, self.source_subfolder)
-        cmakelists_path = "%s/CMakeLists.txt" % self.source_subfolder
+        os.rename("paho.mqtt.c-%s" % self.version, self._source_subfolder)
+        cmakelists_path = "%s/CMakeLists.txt" % self._source_subfolder
         tools.replace_in_file(cmakelists_path,
                               "PROJECT(\"paho\" C)",
                               """PROJECT("paho" C)
@@ -56,18 +61,19 @@ conan_basic_setup()""")
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
-        cmake.configure(source_folder=self.source_subfolder)
+        cmake.configure(source_folder=self._source_subfolder)
         cmake.build()
 
     def package(self):
-        self.copy("edl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("epl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("notice.html", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
-        pattern = "*paho-mqtt3"
-        pattern += "s" if self.options.SSL else ""
-        pattern += "a" if self.options.async else "c"
-        pattern += "-static" if not self.options.shared else ""
+        self.copy("edl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("epl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("notice.html", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("*.h", dst="include", src="%s/src" % self._source_subfolder)
+        pattern_name = "*paho-mqtt3"
+        pattern_ssl = "s" if self.options.SSL else ""
+        pattern_async = "a" if self.options.asynchronous else "c"
+        pattern_shared = "-static" if not self.options.shared else ""
+        pattern = pattern_name + pattern_ssl + pattern_async + pattern_shared
         for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".*.dylib", ".so*"]:
             self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
                       keep_path=False)
