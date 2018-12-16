@@ -84,7 +84,7 @@ conan_basic_setup()""")
             if not self.options.shared:
                 self.cpp_info.libs.append("ws2_32")
                 if self.settings.compiler == "gcc":
-                    self.cpp_info.libs.append("wsock32", "uuid", "crypt32")
+                    self.cpp_info.libs.extend(["wsock32", "uuid", "crypt32"])
         else:
             if self.settings.os == "Linux":
                 self.cpp_info.libs.append("c")
