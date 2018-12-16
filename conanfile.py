@@ -46,7 +46,7 @@ conan_basic_setup()""")
         if self.options.SSL:
             self.requires("OpenSSL/1.1.0i@conan/stable")
 
-    def build(self):
+    def _configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions["PAHO_BUILD_DOCUMENTATION"] = False
         cmake.definitions["PAHO_BUILD_SAMPLES"] = False
@@ -54,20 +54,18 @@ conan_basic_setup()""")
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
         cmake.configure(source_folder=self._source_subfolder)
+        return cmake
+
+    def build(self):
+        cmake = self._configure_cmake()
         cmake.build()
 
     def package(self):
         self.copy("edl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
         self.copy("epl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
         self.copy("notice.html", src=self._source_subfolder, dst="licenses", keep_path=False)
-        self.copy("*.h", dst="include", src="%s/src" % self._source_subfolder)
-        pattern = "*paho-mqtt3"
-        pattern += "s" if self.options.SSL else ""
-        pattern += "a" if self.options.async else "c"
-        pattern += "-static" if not self.options.shared else ""
-        for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".*.dylib", ".so*"]:
-            self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
-                      keep_path=False)
+        cmake = self._configure_cmake()
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
