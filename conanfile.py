@@ -16,13 +16,10 @@ of Things (IoT)"""
                "fPIC": [True, False],
                "SSL": [True, False],
                "async": [True, False]}
-    default_options = "shared=False", "fPIC=True", "SSL=False", "async=True"
+    default_options = {"shared": False, "fPIC": True, "SSL": False, "async": True}
     generators = "cmake"
     exports = "LICENSE"
-
-    @property
-    def source_subfolder(self):
-        return "sources"
+    _source_subfolder = "sources"
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -33,8 +30,8 @@ of Things (IoT)"""
 
     def source(self):
         tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
-        os.rename("paho.mqtt.c-%s" % self.version, self.source_subfolder)
-        cmakelists_path = "%s/CMakeLists.txt" % self.source_subfolder
+        os.rename("paho.mqtt.c-%s" % self.version, self._source_subfolder)
+        cmakelists_path = "%s/CMakeLists.txt" % self._source_subfolder
         tools.replace_in_file(cmakelists_path,
                               "PROJECT(\"Eclipse Paho C\" C)",
                               """PROJECT(\"Eclipse Paho C\" C)
@@ -56,14 +53,14 @@ conan_basic_setup()""")
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
-        cmake.configure(source_folder=self.source_subfolder)
+        cmake.configure(source_folder=self._source_subfolder)
         cmake.build()
 
     def package(self):
-        self.copy("edl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("epl-v10", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("notice.html", src=self.source_subfolder, dst="licenses", keep_path=False)
-        self.copy("*.h", dst="include", src="%s/src" % self.source_subfolder)
+        self.copy("edl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("epl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("notice.html", src=self._source_subfolder, dst="licenses", keep_path=False)
+        self.copy("*.h", dst="include", src="%s/src" % self._source_subfolder)
         pattern = "*paho-mqtt3"
         pattern += "s" if self.options.SSL else ""
         pattern += "a" if self.options.async else "c"
