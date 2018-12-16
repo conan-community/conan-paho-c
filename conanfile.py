@@ -45,6 +45,14 @@ conan_basic_setup()""")
                               "SET(LIBS_SYSTEM ws2_32)",
                               "SET(LIBS_SYSTEM ws2_32 rpcrt4 crypt32 wsock32)")
 
+        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "WebSocket.c"),
+                              "#if defined(__linux__)",
+                              "#if defined(__MINGW32__)\n"
+                              "#define htonll __builtin_bswap64\n"
+                              "#define ntohll __builtin_bswap64\n"
+                              "#endif\n"
+                              "#if defined(__linux__)")
+
     def requirements(self):
         if self.options.SSL:
             self.requires("OpenSSL/1.1.0i@conan/stable")
