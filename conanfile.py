@@ -53,6 +53,18 @@ conan_basic_setup()""")
                               "#endif\n"
                               "#if defined(__linux__)")
 
+        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "Thread.c"),
+                              "clock_gettime(CLOCK_REALTIME, &cond_timeout);",
+                              "#ifdef __APPLE__\n"
+                              "struct timeval cur_time;\n"
+                              "gettimeofday(&cur_time, NULL);\n"
+                              "cond_timeout.tv_sec = cur_time.tv_sec + timeout;\n"
+                              "cond_timeout.tv_nsec = cur_time.tv_usec * 1000;\n"
+                              "timeout = 0;\n"
+                              "#else\n"
+                              "clock_gettime(CLOCK_REALTIME, &cond_timeout);\n"
+                              "#endif\n")
+
     def requirements(self):
         if self.options.SSL:
             self.requires("OpenSSL/1.1.0i@conan/stable")
