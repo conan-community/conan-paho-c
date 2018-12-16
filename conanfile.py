@@ -41,6 +41,9 @@ conan_basic_setup()""")
         tools.replace_in_file(cmakelists_path,
                               "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)",
                               "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)")
+        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "CMakeLists.txt"),
+                              "SET(LIBS_SYSTEM ws2_32)",
+                              "SET(LIBS_SYSTEM ws2_32 rpcrt4 crypt32 wsock32)")
 
     def requirements(self):
         if self.options.SSL:
