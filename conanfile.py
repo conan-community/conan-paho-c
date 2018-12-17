@@ -19,6 +19,7 @@ of Things (IoT)"""
     default_options = {"shared": False, "fPIC": True, "SSL": False, "async": True}
     generators = "cmake"
     exports = "LICENSE"
+    exports_sources = ["0001-fix-MinGW-and-OSX-builds.patch"]
     _source_subfolder = "sources"
 
     def config_options(self):
@@ -32,38 +33,12 @@ of Things (IoT)"""
         tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
         os.rename("paho.mqtt.c-%s" % self.version, self._source_subfolder)
         cmakelists_path = "%s/CMakeLists.txt" % self._source_subfolder
+        tools.patch(base_path=self._source_subfolder, patch_file="0001-fix-MinGW-and-OSX-builds.patch")
         tools.replace_in_file(cmakelists_path,
                               "PROJECT(\"Eclipse Paho C\" C)",
                               """PROJECT(\"Eclipse Paho C\" C)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()""")
-        tools.replace_in_file(cmakelists_path, "ADD_SUBDIRECTORY(test)", "")
-        tools.replace_in_file(cmakelists_path,
-                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)",
-                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)")
-        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "CMakeLists.txt"),
-                              "SET(LIBS_SYSTEM ws2_32)",
-                              "SET(LIBS_SYSTEM ws2_32 rpcrt4 crypt32 wsock32)")
-
-        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "WebSocket.c"),
-                              "#if defined(__linux__)",
-                              "#if defined(__MINGW32__)\n"
-                              "#define htonll __builtin_bswap64\n"
-                              "#define ntohll __builtin_bswap64\n"
-                              "#endif\n"
-                              "#if defined(__linux__)")
-
-        tools.replace_in_file(os.path.join(self._source_subfolder, "src", "Thread.c"),
-                              "clock_gettime(CLOCK_REALTIME, &cond_timeout);",
-                              "#ifdef __APPLE__\n"
-                              "struct timeval cur_time;\n"
-                              "gettimeofday(&cur_time, NULL);\n"
-                              "cond_timeout.tv_sec = cur_time.tv_sec + timeout;\n"
-                              "cond_timeout.tv_nsec = cur_time.tv_usec * 1000;\n"
-                              "timeout = 0;\n"
-                              "#else\n"
-                              "clock_gettime(CLOCK_REALTIME, &cond_timeout);\n"
-                              "#endif\n")
 
     def requirements(self):
         if self.options.SSL:
@@ -71,6 +46,7 @@ conan_basic_setup()""")
 
     def _configure_cmake(self):
         cmake = CMake(self)
+        cmake.definitions["PAHO_ENABLE_TESTING"] = False
         cmake.definitions["PAHO_BUILD_DOCUMENTATION"] = False
         cmake.definitions["PAHO_BUILD_SAMPLES"] = False
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
