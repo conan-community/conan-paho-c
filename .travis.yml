@@ -38,6 +38,9 @@ matrix:
       - <<: *linux
         env: CONAN_CLANG_VERSIONS=6.0 CONAN_DOCKER_IMAGE=lasote/conanclang60
 
+      - <<: *linux
+        env: CONAN_CLANG_VERSIONS=7.0 CONAN_DOCKER_IMAGE=lasote/conanclang7
+
       - <<: *osx
         osx_image: xcode7.3
         env: CONAN_APPLE_CLANG_VERSIONS=7.3
@@ -53,6 +56,10 @@ matrix:
       - <<: *osx
         osx_image: xcode9.3
         env: CONAN_APPLE_CLANG_VERSIONS=9.1
+
+      - <<: *osx
+        osx_image: xcode10.1
+        env: CONAN_APPLE_CLANG_VERSIONS=10.0
 
       - <<: *linux
         env: CONAN_GCC_VERSIONS=7 CONAN_DOCKER_IMAGE=lasote/conangcc7-armv7hf CONAN_ARCHS=armv7hf
