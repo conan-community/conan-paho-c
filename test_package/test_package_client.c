@@ -17,10 +17,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "MQTTClient.h"
 
 #define ADDRESS     "tcp://iot.eclipse.org:1883"
-#define CLIENTID    "ExampleClientSub"
 
 void connlost(void *context, char *cause)
 {
@@ -34,12 +34,21 @@ int main(int argc, char* argv[])
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     int rc;
     int ch;
+    time_t time_seed;
+    int random;
+    char client_id [24] = {0};
 
-    MQTTClient_create(&client, ADDRESS, CLIENTID,
+    srand((unsigned int) time(&time_seed));
+    random = rand() % 100000;
+    snprintf(client_id, sizeof(client_id), "conanpahoc%d", random);
+
+    printf("Connecting client %s to address %s\n", client_id, ADDRESS);
+    MQTTClient_create(&client, ADDRESS, client_id,
         MQTTCLIENT_PERSISTENCE_NONE, NULL);
     conn_opts.keepAliveInterval = 20;
     conn_opts.cleansession = 1;
 
+    printf("Set callbacks\n");
     MQTTClient_setCallbacks(client, NULL, connlost, NULL, NULL);
 
     MQTTClient_destroy(&client);
