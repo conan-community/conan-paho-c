@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from conans import ConanFile, CMake, tools
 import os
 
@@ -8,6 +9,7 @@ class TestPackageConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake.definitions["BUILD_ASYNC"] = self.options["paho-c"].asynchronous
         cmake.configure()
         cmake.build()
 

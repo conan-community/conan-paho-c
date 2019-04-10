@@ -54,6 +54,7 @@ of Things (IoT)"""
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
+        cmake.definitions["PAHO_BUILD_ASYNC"] = self.options.asynchronous
         cmake.configure()
         return cmake
 
