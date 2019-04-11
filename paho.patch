@@ -1,0 +1,218 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c041df0..e516ec2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -55,7 +55,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+ ENDIF()
+ 
+ IF(WIN32)
+-  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)
++  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)
+ ELSEIF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+   ADD_DEFINITIONS(-DOSX)
+ ENDIF()
+@@ -66,6 +66,7 @@ SET(PAHO_BUILD_STATIC FALSE CACHE BOOL "Build static library")
+ SET(PAHO_BUILD_DOCUMENTATION FALSE CACHE BOOL "Create and install the HTML based API documentation (requires Doxygen)")
+ SET(PAHO_BUILD_SAMPLES FALSE CACHE BOOL "Build sample programs")
+ SET(PAHO_BUILD_DEB_PACKAGE FALSE CACHE BOOL "Build debian package")
++SET(PAHO_BUILD_ASYNC FALSE CACHE BOOL "Build asynchronous libraries")
+ 
+ ADD_SUBDIRECTORY(src)
+ IF(PAHO_BUILD_SAMPLES)
+@@ -96,5 +97,4 @@ INCLUDE(CPack)
+ 
+ ENABLE_TESTING()
+ 
+-INCLUDE_DIRECTORIES(test src)
+-ADD_SUBDIRECTORY(test)
++INCLUDE_DIRECTORIES(src)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 502c69a..faeefb6 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -60,47 +60,61 @@ ELSEIF (UNIX)
+     ENDIF()
+ ENDIF()
+ 
+-
+ ## common compilation for libpaho-mqtt3c and libpaho-mqtt3a
+ ADD_LIBRARY(common_obj OBJECT ${common_src})
+-SET_PROPERTY(TARGET common_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
+-
+-ADD_EXECUTABLE(MQTTVersion MQTTVersion.c)
+-
+-ADD_LIBRARY(paho-mqtt3c SHARED $<TARGET_OBJECTS:common_obj> MQTTClient.c)
+-ADD_LIBRARY(paho-mqtt3a SHARED $<TARGET_OBJECTS:common_obj> MQTTAsync.c)
+ 
+-TARGET_LINK_LIBRARIES(paho-mqtt3c ${LIBS_SYSTEM})
+-TARGET_LINK_LIBRARIES(paho-mqtt3a ${LIBS_SYSTEM})
+-
+-TARGET_LINK_LIBRARIES(MQTTVersion paho-mqtt3a paho-mqtt3c ${LIBS_SYSTEM})
+-SET_TARGET_PROPERTIES(
+-    paho-mqtt3c paho-mqtt3a PROPERTIES
+-    VERSION ${CLIENT_VERSION}
+-    SOVERSION ${PAHO_VERSION_MAJOR})
++IF (NOT PAHO_BUILD_STATIC)
++    IF (PAHO_BUILD_ASYNC)
++	    ADD_LIBRARY(paho-mqtt3a SHARED $<TARGET_OBJECTS:common_obj> MQTTAsync.c)
++	    TARGET_LINK_LIBRARIES(paho-mqtt3a ${LIBS_SYSTEM})
++	    SET_TARGET_PROPERTIES(
++			paho-mqtt3a PROPERTIES
++			VERSION ${CLIENT_VERSION}
++			SOVERSION ${PAHO_VERSION_MAJOR})
++	    INSTALL(TARGETS paho-mqtt3a
++			RUNTIME DESTINATION bin
++			ARCHIVE DESTINATION lib
++			LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
++    ELSE ()
++	    ADD_LIBRARY(paho-mqtt3c SHARED $<TARGET_OBJECTS:common_obj> MQTTClient.c)
++	    TARGET_LINK_LIBRARIES(paho-mqtt3c ${LIBS_SYSTEM})
++	    SET_TARGET_PROPERTIES(
++            paho-mqtt3c PROPERTIES
++            VERSION ${CLIENT_VERSION}
++            SOVERSION ${PAHO_VERSION_MAJOR})
++	    INSTALL(TARGETS paho-mqtt3c
++            RUNTIME DESTINATION bin
++            ARCHIVE DESTINATION lib
++            LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
++    ENDIF()
+ 
+-INSTALL(TARGETS paho-mqtt3c paho-mqtt3a
+-    RUNTIME DESTINATION bin
+-    ARCHIVE DESTINATION lib
+-    LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
+-INSTALL(TARGETS MQTTVersion
+-    RUNTIME DESTINATION bin)
++ENDIF()
+ 
+ IF (PAHO_BUILD_STATIC)
+-    ADD_LIBRARY(paho-mqtt3c-static STATIC $<TARGET_OBJECTS:common_obj> MQTTClient.c)
+-    ADD_LIBRARY(paho-mqtt3a-static STATIC $<TARGET_OBJECTS:common_obj> MQTTAsync.c)
+-
+-    TARGET_LINK_LIBRARIES(paho-mqtt3c-static ${LIBS_SYSTEM})
+-    TARGET_LINK_LIBRARIES(paho-mqtt3a-static ${LIBS_SYSTEM})
+-
+-    INSTALL(TARGETS paho-mqtt3c-static paho-mqtt3a-static
+-        RUNTIME DESTINATION bin
+-        ARCHIVE DESTINATION lib
+-        LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
++    IF (PAHO_BUILD_ASYNC)
++        ADD_LIBRARY(paho-mqtt3a-static STATIC $<TARGET_OBJECTS:common_obj> MQTTAsync.c)
++        TARGET_LINK_LIBRARIES(paho-mqtt3a-static ${LIBS_SYSTEM})
++        INSTALL(TARGETS paho-mqtt3a-static
++            RUNTIME DESTINATION bin
++            ARCHIVE DESTINATION lib
++            LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
++	ELSE ()
++        ADD_LIBRARY(paho-mqtt3c-static STATIC $<TARGET_OBJECTS:common_obj> MQTTClient.c)
++        TARGET_LINK_LIBRARIES(paho-mqtt3c-static ${LIBS_SYSTEM})
++        INSTALL(TARGETS paho-mqtt3c-static
++            RUNTIME DESTINATION bin
++            ARCHIVE DESTINATION lib
++            LIBRARY DESTINATION ${PAHO_LIBRARY_DIR_NAME})
++	ENDIF ()
+ ENDIF()
+ 
+-INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h
+-    DESTINATION include)
++IF (PAHO_BUILD_ASYNC)
++    INSTALL(FILES MQTTAsync.h MQTTClient.h MQTTClientPersistence.h
++            DESTINATION include)
++ELSE ()
++    INSTALL(FILES MQTTClient.h MQTTClientPersistence.h
++            DESTINATION include)
++ENDIF ()
+ 
+ IF (PAHO_WITH_SSL)
+     SET(OPENSSL_SEARCH_PATH "" CACHE PATH "Directory containing OpenSSL libraries and includes")
+@@ -132,38 +146,60 @@ IF (PAHO_WITH_SSL)
+     ## common compilation for libpaho-mqtt3cs and libpaho-mqtt3as
+     ## Note: SSL libraries must be recompiled due ifdefs
+     ADD_LIBRARY(common_ssl_obj OBJECT ${common_src})
+-    SET_PROPERTY(TARGET common_ssl_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
+     SET_PROPERTY(TARGET common_ssl_obj PROPERTY COMPILE_DEFINITIONS "OPENSSL=1")
+-    ADD_LIBRARY(paho-mqtt3cs SHARED $<TARGET_OBJECTS:common_ssl_obj> MQTTClient.c SSLSocket.c)
+-    ADD_LIBRARY(paho-mqtt3as SHARED $<TARGET_OBJECTS:common_ssl_obj> MQTTAsync.c SSLSocket.c)
+-
+-    TARGET_LINK_LIBRARIES(paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ${LIBS_SYSTEM})
+-    TARGET_LINK_LIBRARIES(paho-mqtt3as ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ${LIBS_SYSTEM})
+-    SET_TARGET_PROPERTIES(
+-        paho-mqtt3cs paho-mqtt3as PROPERTIES
+-        VERSION ${CLIENT_VERSION}
+-        SOVERSION ${PAHO_VERSION_MAJOR}
+-        COMPILE_DEFINITIONS "OPENSSL=1")
+-    INSTALL(TARGETS paho-mqtt3cs paho-mqtt3as
+-        RUNTIME DESTINATION bin
+-        ARCHIVE DESTINATION lib
+-        LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++    IF (NOT PAHO_BUILD_STATIC)
++        IF (PAHO_BUILD_ASYNC)
++            ADD_LIBRARY(paho-mqtt3as SHARED $<TARGET_OBJECTS:common_ssl_obj> MQTTAsync.c SSLSocket.c)
++            TARGET_LINK_LIBRARIES(paho-mqtt3as ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ${LIBS_SYSTEM})
++            SET_TARGET_PROPERTIES(
++                paho-mqtt3as PROPERTIES
++                VERSION ${CLIENT_VERSION}
++                SOVERSION ${PAHO_VERSION_MAJOR}
++                COMPILE_DEFINITIONS "OPENSSL=1")
++            INSTALL(TARGETS paho-mqtt3as
++                RUNTIME DESTINATION bin
++                ARCHIVE DESTINATION lib
++                LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++        ELSE ()
++            ADD_LIBRARY(paho-mqtt3cs SHARED $<TARGET_OBJECTS:common_ssl_obj> MQTTClient.c SSLSocket.c)
++            TARGET_LINK_LIBRARIES(paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ${LIBS_SYSTEM})
++            SET_TARGET_PROPERTIES(
++                paho-mqtt3cs PROPERTIES
++                VERSION ${CLIENT_VERSION}
++                SOVERSION ${PAHO_VERSION_MAJOR}
++                COMPILE_DEFINITIONS "OPENSSL=1")
++            INSTALL(TARGETS paho-mqtt3cs
++                RUNTIME DESTINATION bin
++                ARCHIVE DESTINATION lib
++                LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++        ENDIF ()
++    ENDIF()
+ 
+     IF (PAHO_BUILD_STATIC)
+-        ADD_LIBRARY(paho-mqtt3cs-static STATIC $<TARGET_OBJECTS:common_ssl_obj> MQTTClient.c SSLSocket.c)
+-        ADD_LIBRARY(paho-mqtt3as-static STATIC $<TARGET_OBJECTS:common_ssl_obj> MQTTAsync.c SSLSocket.c)
+-
+-        TARGET_LINK_LIBRARIES(paho-mqtt3cs-static ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
+-        TARGET_LINK_LIBRARIES(paho-mqtt3as-static ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
+-        SET_TARGET_PROPERTIES(
+-        paho-mqtt3cs-static paho-mqtt3as-static PROPERTIES
+-        VERSION ${CLIENT_VERSION}
+-        SOVERSION ${PAHO_VERSION_MAJOR}
+-        COMPILE_DEFINITIONS "OPENSSL=1")
+-
+-        INSTALL(TARGETS paho-mqtt3cs-static paho-mqtt3as-static
+-            RUNTIME DESTINATION bin
+-            ARCHIVE DESTINATION lib
+-            LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++        IF (PAHO_BUILD_ASYNC)
++            ADD_LIBRARY(paho-mqtt3as-static STATIC $<TARGET_OBJECTS:common_ssl_obj> MQTTAsync.c SSLSocket.c)
++            TARGET_LINK_LIBRARIES(paho-mqtt3as-static ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
++            SET_TARGET_PROPERTIES(
++            paho-mqtt3as-static PROPERTIES
++            VERSION ${CLIENT_VERSION}
++            SOVERSION ${PAHO_VERSION_MAJOR}
++            COMPILE_DEFINITIONS "OPENSSL=1")
++            INSTALL(TARGETS paho-mqtt3as-static
++                RUNTIME DESTINATION bin
++                ARCHIVE DESTINATION lib
++                LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++        ELSE ()
++            ADD_LIBRARY(paho-mqtt3cs-static STATIC $<TARGET_OBJECTS:common_ssl_obj> MQTTClient.c SSLSocket.c)
++            TARGET_LINK_LIBRARIES(paho-mqtt3cs-static ${OPENSSL_LIBRARIES} ${LIBS_SYSTEM})
++            SET_TARGET_PROPERTIES(
++            paho-mqtt3cs-static PROPERTIES
++            VERSION ${CLIENT_VERSION}
++            SOVERSION ${PAHO_VERSION_MAJOR}
++            COMPILE_DEFINITIONS "OPENSSL=1")
++            INSTALL(TARGETS paho-mqtt3cs-static
++                RUNTIME DESTINATION bin
++                ARCHIVE DESTINATION lib
++                LIBRARY DESTINATION  ${PAHO_LIBRARY_DIR_NAME})
++        ENDIF ()
+     ENDIF()
+ ENDIF()

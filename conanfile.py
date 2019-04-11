@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from conans import ConanFile, CMake, tools
 
@@ -24,6 +25,7 @@ of Things (IoT)"""
                        "asynchronous": True}
     generators = "cmake"
     exports = "LICENSE"
+    exports_sources = ["CMakeLists.txt", "paho.patch"]
 
     @property
     def _source_subfolder(self):
@@ -37,46 +39,36 @@ of Things (IoT)"""
         del self.settings.compiler.libcxx
 
     def source(self):
-        tools.get("%s/archive/v%s.zip" % (self.homepage, self.version))
+        sha256 = "973a6613fc772b8382018572af05a2298173327ae512371e6082b0a98d442823"
+        tools.get("%s/archive/v%s.zip" % (self.homepage, self.version), sha256=sha256)
         os.rename("paho.mqtt.c-%s" % self.version, self._source_subfolder)
-        cmakelists_path = "%s/CMakeLists.txt" % self._source_subfolder
-        tools.replace_in_file(cmakelists_path,
-                              "PROJECT(\"paho\" C)",
-                              """PROJECT("paho" C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()""")
-        tools.replace_in_file(cmakelists_path, "ADD_SUBDIRECTORY(test)", "")
-        tools.replace_in_file(cmakelists_path,
-                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN -MD)",
-                              "ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -DWIN32_LEAN_AND_MEAN)")
 
     def requirements(self):
         if self.options.SSL:
-            self.requires("OpenSSL/1.0.2n@conan/stable")
+            self.requires("OpenSSL/1.0.2r@conan/stable")
 
-    def build(self):
+    def _configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions["PAHO_BUILD_DOCUMENTATION"] = False
         cmake.definitions["PAHO_BUILD_SAMPLES"] = False
         cmake.definitions["PAHO_BUILD_DEB_PACKAGE"] = False
         cmake.definitions["PAHO_BUILD_STATIC"] = not self.options.shared
         cmake.definitions["PAHO_WITH_SSL"] = self.options.SSL
-        cmake.configure(source_folder=self._source_subfolder)
+        cmake.definitions["PAHO_BUILD_ASYNC"] = self.options.asynchronous
+        cmake.configure()
+        return cmake
+
+    def build(self):
+        tools.patch(base_path=self._source_subfolder, patch_file="paho.patch")
+        cmake = self._configure_cmake()
         cmake.build()
 
     def package(self):
-        self.copy("edl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
-        self.copy("epl-v10", src=self._source_subfolder, dst="licenses", keep_path=False)
-        self.copy("notice.html", src=self._source_subfolder, dst="licenses", keep_path=False)
-        self.copy("*.h", dst="include", src="%s/src" % self._source_subfolder)
-        pattern_name = "*paho-mqtt3"
-        pattern_ssl = "s" if self.options.SSL else ""
-        pattern_async = "a" if self.options.asynchronous else "c"
-        pattern_shared = "-static" if not self.options.shared else ""
-        pattern = pattern_name + pattern_ssl + pattern_async + pattern_shared
-        for extension in [".a", ".dll.a", ".lib", ".dll", ".dylib", ".*.dylib", ".so*"]:
-            self.copy(pattern + extension, dst="bin" if extension.endswith("dll") else "lib",
-                      keep_path=False)
+        self.copy("edl-v10", src=self._source_subfolder, dst="licenses")
+        self.copy("epl-v10", src=self._source_subfolder, dst="licenses")
+        self.copy("notice.html", src=self._source_subfolder, dst="licenses")
+        cmake = self._configure_cmake()
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
@@ -87,12 +79,8 @@ conan_basic_setup()""")
                     self.cpp_info.libs.append("wsock32") # (MinGW) needed?
         else:
             if self.settings.os == "Linux":
-                self.cpp_info.libs.append("c")
-                self.cpp_info.libs.append("dl")
-                self.cpp_info.libs.append("pthread")
+                self.cpp_info.libs.extend(["c", "dl", "pthread"])
             elif self.settings.os == "FreeBSD":
-                self.cpp_info.libs.append("compat")
-                self.cpp_info.libs.append("pthread")
+                self.cpp_info.libs.extend(["compat", "pthread"])
             else:
-                self.cpp_info.libs.append("c")
-                self.cpp_info.libs.append("pthread")
+                self.cpp_info.libs.extend(["c", "pthread"])

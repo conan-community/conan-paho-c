@@ -1,12 +1,14 @@
 project(test_package C)
 cmake_minimum_required(VERSION 2.8.11)
 
+option(BUILD_ASYNC "Build asynchronous example" ON)
+
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-file(GLOB SOURCE_FILES *.c)
-
-message("LIBS: ${CONAN_LIBS}")
-
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+if (BUILD_ASYNC)
+    add_executable(${PROJECT_NAME} test_package_async.c)
+else()
+    add_executable(${PROJECT_NAME} test_package_client.c)
+endif()
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
