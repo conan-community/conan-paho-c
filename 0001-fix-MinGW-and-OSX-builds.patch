@@ -1,20 +1,5 @@
-From 6161626506c642a2b8434ed9b4b28ab7f8f93a9d Mon Sep 17 00:00:00 2001
-From: SSE4 <tomskside@gmail.com>
-Date: Mon, 17 Dec 2018 15:14:31 +0700
-Subject: [PATCH] - fix MinGW and OSX builds
-
-Signed-off-by: SSE4 <tomskside@gmail.com>
----
- CMakeLists.txt     |  2 +-
- src/CMakeLists.txt |  2 +-
- src/MQTTAsync.c    | 18 ++++++++++++++++++
- src/MQTTClient.c   | 17 +++++++++++++++++
- src/Thread.c       |  7 +++++++
- src/WebSocket.c    |  5 +++++
- 6 files changed, 49 insertions(+), 2 deletions(-)
-
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b53745b..64ae92c 100644
+index b53745b..d8787d8 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -37,7 +37,7 @@ STRING(TIMESTAMP BUILD_TIMESTAMP UTC)
@@ -26,6 +11,41 @@ index b53745b..64ae92c 100644
  ELSEIF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
    ADD_DEFINITIONS(-DOSX)
  ENDIF()
+@@ -61,34 +61,6 @@ IF(PAHO_BUILD_DOCUMENTATION)
+     ADD_SUBDIRECTORY(doc)
+ ENDIF()
+ 
+-IF (PAHO_ENABLE_CPACK)
+-       ### packaging settings
+-       FILE(GLOB samples "src/samples/*.c")
+-       INSTALL(FILES ${samples} DESTINATION samples)
+-
+-       SET(CPACK_PACKAGE_VENDOR "Eclipse Paho")
+-       SET(CPACK_PACKAGE_NAME "Eclipse-Paho-MQTT-C")
+-       INSTALL(FILES CONTRIBUTING.md epl-v10 edl-v10 README.md notice.html DESTINATION .)
+-
+-       IF (WIN32)
+-               SET(CPACK_GENERATOR "ZIP")
+-       ELSEIF(PAHO_BUILD_DEB_PACKAGE)
+-               INSTALL(FILES CONTRIBUTING.md epl-v10 edl-v10 README.md notice.html DESTINATION .)
+-
+-               SET(CPACK_GENERATOR "DEB")
+-               CONFIGURE_FILE(${CMAKE_SCRIPTS}/CPackDebConfig.cmake.in
+-                       ${CMAKE_BINARY_DIR}/CPackDebConfig.cmake @ONLY)
+-               SET(CPACK_PROJECT_CONFIG_FILE ${CMAKE_BINARY_DIR}/CPackDebConfig.cmake)
+-               ADD_SUBDIRECTORY(debian)
+-       ELSE()
+-               SET(CPACK_GENERATOR "TGZ")
+-       ENDIF()
+-ELSE()
+-       FILE(GLOB samples "src/samples/*.c")
+-       INSTALL(FILES ${samples} DESTINATION ${CMAKE_INSTALL_DOCDIR})
+-
+-ENDIF()
+-
+ SET(CPACK_PACKAGE_VERSION_MAJOR ${PAHO_VERSION_MAJOR})
+ SET(CPACK_PACKAGE_VERSION_MINOR ${PAHO_VERSION_MINOR})
+ SET(CPACK_PACKAGE_VERSION_PATCH ${PAHO_VERSION_PATCH})
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
 index b46eaca..399b37d 100644
 --- a/src/CMakeLists.txt
@@ -147,6 +167,3 @@ index 47b1dad..3f96dac 100644
  #if defined(__linux__)
  #  include <endian.h>
  #elif defined(__APPLE__)
--- 
-2.20.0
-
