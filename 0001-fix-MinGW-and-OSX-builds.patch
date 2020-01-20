@@ -78,7 +78,7 @@ index a5813b4..4f209ec 100644
  #else
  #define START_TIME_TYPE struct timeval
  START_TIME_TYPE MQTTAsync_start_clock(void)
-@@ -235,6 +243,16 @@ long MQTTAsync_elapsed(struct timespec start)
+@@ -255,6 +263,16 @@ long MQTTAsync_elapsed(struct timespec start)
  	ntimersub(now, start, res);
  	return (res.tv_sec)*1000L + (res.tv_nsec)/1000000L;
  }
@@ -134,7 +134,7 @@ diff --git a/src/Thread.c b/src/Thread.c
 index 4cb2f16..40ce8dc 100644
 --- a/src/Thread.c
 +++ b/src/Thread.c
-@@ -409,9 +409,16 @@ int Thread_wait_cond(cond_type condvar, int timeout)
+@@ -411,9 +411,16 @@ int Thread_wait_cond(cond_type condvar, int timeout)
  	struct timespec cond_timeout;
  
  	FUNC_ENTRY;
@@ -155,8 +155,8 @@ diff --git a/src/WebSocket.c b/src/WebSocket.c
 index 47b1dad..3f96dac 100644
 --- a/src/WebSocket.c
 +++ b/src/WebSocket.c
-@@ -28,6 +28,11 @@
- #include "MQTTProtocolOut.h"
+@@ -29,6 +28,11 @@
+ #include "SocketBuffer.h"
  #include "StackTrace.h"
  
 +#ifdef __MINGW32__
