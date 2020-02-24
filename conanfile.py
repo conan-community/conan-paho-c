@@ -36,7 +36,7 @@ of Things (IoT)"""
             del self.options.fPIC
 
     def configure(self):
-        self.output.warn("[DEPRECATED] Package paho-c/1.3.1@conan/stable is being deprecated. Change yours to require paho-mqtt-c/1.3.0 instead")
+        self.output.warn("[DEPRECATED] Package paho-c/1.2.0@conan/stable is being deprecated. Change yours to require paho-mqtt-c/1.3.0 instead")
         del self.settings.compiler.libcxx
 
     def source(self):
