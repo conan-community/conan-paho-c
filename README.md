@@ -1,3 +1,13 @@
+## Package Deprecation Notice
+
+The CCI has taken ownership of the public Conan package for this library, which can be found at the following links:
+
+https://github.com/conan-io/conan-center-index
+
+Conan Community will keep this version of the package on Github and Bintray, however it will no longer be maintained or supported.
+Users are advised to update their projects to use the official Conan package maintained by Conan Center Index immediately.
+
+
 # conan-paho-c
 
 ![conan-paho-c image](/images/conan-paho-c.png)
